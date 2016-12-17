@@ -1,0 +1,43 @@
+::: Simple Userspace POSIX Thread
+
+This is a simple POSIX thread implementation for practice. 
+It's specific to the 32bit Linux bandit 3.16.0-4-amd64 #1 SMP Debian 3.16.36-1+deb8u1 (2016-09-03) x86_64 GNU/Linux.
+If you think your system can run this library, feel free to do so. Just make sure that the 'struct __jmp_buf_tag' is defined the same in your system, or edit the library to make sure the jmp_buf attribute in the TCB struct is the same type as what setjmp() and longjmp() accepts.
+
+The library supports basic multithreading and synchronization and following methods are implemented:
+
+- int sem_init(sem_t *sem, int pshared, unsigned value):
+
+	This function will in itialize an unnamed semaphore referred to by  sem. The pshared argument always equals to 0, which means that the semaphore pointed to by  sem is shared between threads of the process.
+
+- int sem_wait(sem_t *sem):
+
+	sem_wait decrements (locks) the semaphore pointed to by  sem. If the semaphore’s value is greater than zero, then the decrement proceeds, and the function returns immediately. If the semaphore currently has the value zero, then the call blocks until it becomes possible to perform the decrement (i.e., the semaphore value rises above zero).
+
+- int sem_post(sem_t *sem):
+
+	sem_post increments (unlocks) the semaphore pointed to by  sem. If the semaphore’s value consequently becomes greater than zero, then another thread blocked in a  sem_wait call will be woken up and proceeds to lock the semaphore. Note that when a thread is woken up and takes the lock as part of sem_post, the value of the semaphore will remain zero.
+
+- int sem_destroy(sem_t *sem):
+
+	sem_destroy destroys the semaphore specified at the address pointed to by sem which means that only a semaphore that has been initialized by  sem_init should be destroyed using  sem_destroy. Destroying a semaphore that other threads are currently blocked on (in  sem_wait) produces undefined behavior. Using a semaphore that has been destroyed produces undefined results, until the semaphore has been reinitialized using sem_init.
+
+- int pthread_create(
+     pthread_t *thread,
+     const pthread_attr_t *attr,
+     void *(*start_routine) (void *),
+     void *arg):
+
+	The  pthread_create() function creates a new thread within a process. Upon successful completion,  pthread_create() stores the ID of the created thread in the location referenced by  thread . In our  implementation, the second argument ( attr) shall always be NULL. The thread is created (i.e., your library must create a new Thread context, cf. Lecture4) and executes  start_routine with  arg as its sole argument. If the  start_routine returns, the effect shall be as if t here was an implicit call to  pthread_exit() using the return value of start_routine as the exit status. Note that the thread in which  main () was originally invoked differs from this. When it returns from  main (), the effect shall be as if there was an implicit call to  exit() using the return value of  main () as the exit status.
+
+- int pthread_join(pthread_t thread, void **value_ptr):
+
+	This function will postpone the execution of the thread that initiated the call until the target thread terminates, unless the target thread has already terminated. There is now the need to correctly handle the exit code of threads that terminate. On return from a successful  pthread_join call with a non-NULL value_ptr argument, the value passed to pthread_exit by the terminating thread shall be made available in the location referenced by value_ptr.
+
+- void pthread_exit(void *value_ptr):
+
+	The pthread_exit() function terminates the calling thread. In our current implementation, we ignore the  value passed in as the first argument ( value_ptr) and clean up all information related to the terminating thread. The process shall exit with an exit status of 0 after the last thread has been terminated. Th  e behavior shall be as if the implementation called  exit() with a zero argument at thread termination time.
+
+- pthread_t pthread_self(void):
+
+	The pthread_self() function shall return the thread ID of the calling thread.
